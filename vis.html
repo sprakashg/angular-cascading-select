@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="The HTML5">
+    <style type="text/css">
+      table, th , td  {
+        border: 1px solid grey;
+        border-collapse: collapse;
+        padding: 5px;
+      }
+      table tr:nth-child(odd) {
+        background-color: #f1f1f1;
+      }
+      table tr:nth-child(even) {
+        background-color: #ffffff;
+      }
+      .text-center {
+        text-align: center;
+      }
+      #export {
+        color: #FFFFFF;
+        background-color: #4CAF50;
+        border-radius: 4px!important;
+        webkit-transition: background-color .3s,color .15s,box-shadow .3s,opacity 0.3s,filter 0.3s;
+        border: none;
+        padding: 12px 24px!important;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body ng-controller="myCtrl">
+  <button ng-click="exportData()" id="export" type="button">Export to excel</button>
+  <div id="exportable">
+    <table class="display" cellspacing="0" width="100%">
+      <thead>
+        <th>SKU</th>
+        <th>Image</th>
+        <th>Product Category</th>
+        <th>Product Sub-Category</th>
+        <th>Product Type</th>
+      </thead>
+      <tbody>
+        <tr data-ng-repeat="item in products" class="text-center">
+          <td>
+            {{item.sku}}
+          </td>
+          <td>
+            <img ng-src="{{item.image}}" width="200" height="100">
+          </td>
+          <td>
+            <select ng-options="k as k for k in item.productCategory" ng-change = "productSubCategory($index, item.check1)" ng-model="item.check1">
+              <option value="" disabled>Select Product Category</option>
+            </select>
+          </td>
+          <td>
+            <select  ng-model="item.check2" ng-options="key as key for key in item.productSubCategory " ng-change = "productType($index, item.check1, item.check2)">
+              <option value="" disabled>Select Product Sub-Category</option>
+            </select>   
+          </td>
+          <td>
+            <select  ng-model="item.check3" ng-options="c as c for c in item.pType">
+              <option value="" disabled>Select Product Type</option>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div id="table2" style="display:none">
+      <table>
+        <thead>
+          <th>SKU</th>
+          <th>Image</th>
+          <th>Type</th>
+          <th>Model</th>
+          <th>Extra</th>
+        </thead>
+        <tbody>
+          <tr data-ng-repeat="item in finalList" class="text-center">
+            <td>
+              {{item.sku}}
+            </td>
+            <td>
+              {{item.image}}
+            </td>
+            <td>
+              {{item.check1}}
+            </td>
+            <td>
+              {{item.check2}}           
+            </td>
+            <td>
+              {{item.check3}}
+            </td>
+          </tr>
+        </tbody>
+      </table>      
+    </div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://rawgithub.com/eligrey/FileSaver.js/master/FileSaver.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      var app = angular.module('myApp', []);
+      app.controller('myCtrl', function($scope, $timeout) {
+        /* List of data */
+        $scope.productList = 
+          [
+            {
+              "sku" : "FSLPEW0086",
+              "image" : "http://4.bp.blogspot.com/-dj4D_5CqqsU/UZrAR49J1xI/AAAAAAAAA4g/5516y7uaW5k/s1600/Winter+Desktop+Wallpaper+Himalaya+Mountain+Fresh.jpg"
+            },
+            {
+              "sku" : "FSLPEW0087",
+              "image" : "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRmoYUy74n2J7d4WV_UY3e1213iF2S2PPllk4AnYS9S4NTu7Vjr"
+            },
+            {
+              "sku" : "FSLPEW0089",
+              "image" : "http://allpicts.in/wp-content/uploads/2016/05/10-Best-Nature-Images-HD-in-India-1-Munsiyari-in-Great-Himalayan-Mountain-500x281.jpg"
+            }
+          ]
+
+          /*First initial list for populating the first dropdown*/
+          $scope.productCategory = [
+            'Bags',
+            'Western Wear',
+            'Ethnic Wear'    
+          ]
+
+          /* used for data population using ng-repeat */
+          $scope.products = [];
+           /* Iterate over the data list to insert the first dropdown data in every object */
+          _.each($scope.productList, function(item, value){
+            var data = item;              
+            var insert = {productCategory : $scope.productCategory };
+            var finalOutput = $.extend(data, insert);
+            $scope.products.splice(2,0,finalOutput);
+          })
+
+          console.log($scope.products);
+          /* Funcation is triggered when the first dropdown is selected */
+          $scope.productSubCategory = function(rowindex, field) {
+            var position = $scope.productCategory.indexOf(field);
+           /* Based on the first dropdown selection, second dropdown is populated */
+            if ($scope.productCategory[position] == 'Ethnic Wear') {
+
+              $scope.xy = [
+                 "Kurtas",              
+                 "Kurtis",              
+                 "Anarkalis",              
+                 "Suits",              
+                 "Churidars",              
+                 "Salwars",              
+                 "Palazzos",              
+                 "Skirts",          
+                 "Sarees"
+              ]
+
+              var data = $scope.products[rowindex];              
+              var insert = {productSubCategory : $scope.xy};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1);
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if ($scope.productCategory[position] == 'Bags') {
+
+              $scope.xy = [
+                 "Handbags",              
+                 "Tote Bags",
+                 "Sling Bags",
+                 "Clutches",
+                 "Wallets",
+                 "Travel Bags",
+                 "Gadget Bags",
+                 "Bag Combos",
+                 "Pouches",
+                 "Vanity Bags"
+              ]
+                var data = $scope.products[rowindex];              
+                var insert = {productSubCategory : $scope.xy};
+                var finalOutput = $.extend(data, insert);
+                $scope.products.splice(rowindex, 1)
+                $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if ($scope.productCategory[position] == 'Western Wear') {
+
+                $scope.xy = [
+                  "Tops",
+                  "Tees",
+                  "Shirts",
+                  "Tunics",
+                  "Kaftans",
+                  "Dresses",
+                  "Jumpsuit & Playsuits",
+                  "Leggings",
+                  "Jeggings",
+                  "Jeans",
+                  "Shorts",
+                  "Capris",
+                  "Trousers",
+                  "Palazzo Pants",
+                  "Skirts",
+                  "Blazers",
+                  "Coats",
+                  "Jackets",
+                  "Waistcoats",
+                  "Shrugs",
+                  "Sweatshirts",
+                  "Sweaters",
+                  "Top & Bottom Sets",
+                  "Nightwear & Loungewear",
+                  "Activewear"
+                ]
+                var data = $scope.products[rowindex];              
+                var insert = {productSubCategory : $scope.xy};
+                var finalOutput = $.extend(data, insert);
+                $scope.products.splice(rowindex, 1)
+                $scope.products.splice(rowindex, 0,finalOutput);
+            }
+          }
+
+          $scope.productType = function(rowindex, parent, field) {
+
+            var position1 = $scope.productCategory.indexOf(parent)
+            var position2 = $scope.xy.indexOf(field);
+              /* Based on the first and second dropdown selection, third dropdown is populated */
+            if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Sarees')) {
+              $scope.pType = [
+              
+                 "Traditional Sarees",
+                 "Occassionwear Sarees",         
+                 "Bollywood Sarees",      
+                 "Bandhani & Bandhej Sarees",        
+                 "Lehenga Sarees",       
+                 "Dailywear Sarees",       
+                 "Printed Sarees"
+              ]
+
+                var data = $scope.products[rowindex];              
+                var insert = {pType : $scope.pType};
+                var finalOutput = $.extend(data, insert);
+                $scope.products.splice(rowindex, 1)
+                $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Skirts')) {
+
+              $scope.pType = [
+                 "Skirts"
+              ]
+                var data = $scope.products[rowindex];              
+                var insert = {pType : $scope.pType};
+                var finalOutput = $.extend(data, insert);
+                $scope.products.splice(rowindex, 1)
+                $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Palazzos')) {
+
+              $scope.pType = [
+                "Palazzos",
+                "Culottes"
+              ]
+
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Salwars')) {
+
+              $scope.pType = [
+                "Salwars",
+                "Patiala",
+                "Patiala & Dupatta Sets",
+                "Harem Pants",
+                "Jodhpuris",
+                "Dhoti Salwars"
+              ]
+
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Churidars')) {
+
+              $scope.pType = [
+                "Churidar", 
+                "Churidar & Dupatta Sets"
+              ]
+
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Suits')) {
+
+              $scope.pType = [
+                "Stitched Straight Cut Suits",
+                "Stitched Patiala Suits",
+                "Stitched Churidar Kurta Set",
+                "Stitched Boutique Ensembles",
+                "Stitched Palazzo Suits",
+                "Stitched Lawn Suits",
+                "Unstitched Patiala Suits",
+                "Unstitched Salwar Suits",
+                "Unstitched Churidar Kurta Sets",
+                "Unstitched Pants & Palazzo Suits",
+                "Unstitched Lawn Suits",
+                "Leggings"
+              ]
+
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Anarkalis')) {
+
+              $scope.pType = [
+                "Stitched Anarkali Sets",
+                "Unstitched Anarkali Sets",
+                "Anarkali Kurtas",
+                "Kurta & Leggings",
+                "Kurta & Palazzos",
+                "Kurta & Salwars"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Kurtis')) {
+
+              $scope.pType = [
+                "Short Kurtis"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Ethnic Wear') && ($scope.xy[position2] == 'Kurtas')) {
+
+              $scope.pType = [
+                "Long Kurtas",
+                "Asymmetrical Kurtas",
+                "Knee length kurtas",
+                "Unstitched Kurtas"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Tops')) {
+
+              $scope.pType = [
+                "Strappy Tops",
+                "Cape Tops",
+                "Crop Tops",
+                "Peplum Tops",
+                "Tank Tops",
+                "Tube Tops",
+                "Regular Tops",
+                "Maxi tops"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Tees')) {
+
+              $scope.pType = [
+                "Round Neck Tees", 
+                "Polo Neck Tees", 
+                "V Neck Tees"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Shirts')) {
+
+              $scope.pType = [
+                "Casual Shirts", 
+                "Formal Shirts"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Tunics')) {
+
+              $scope.pType = [
+                "Tunics"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Shirts')) {
+
+              $scope.pType = [
+                "Casual Shirts", 
+                "Formal Shirts"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Kaftans')) {
+
+              $scope.pType = [
+                "Kaftans"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Dresses')) {
+
+              $scope.pType = [
+                "Asymetric dresses",
+                "Gowns",
+                "Bodycon dresses",
+                "Peplum dresses",
+                "Shift dresses",
+                "Shirt dresses",
+                "Skater dresses",
+                "Maxi dresses",
+                "Tube dresses"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Jumpsuit & Playsuits')) {
+
+              $scope.pType = [
+                "Jumpsuits", 
+                "Playsuits", 
+                "Dungarees"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Leggings')) {
+
+              $scope.pType = [
+                "Jumpsuits", 
+                "Playsuits", 
+                "Dungarees"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Jeggings')) {
+
+              $scope.pType = [
+                "Jeggings"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Jeans')) {
+
+              $scope.pType = [
+                "Jeans"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Shorts')) {
+
+              $scope.pType = [
+                "Shorts"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Capris')) {
+
+              $scope.pType = [
+                "Capris"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Trousers')) {
+
+              $scope.pType = [
+                "Chinos",
+                "Formal Pants",
+                "Casual Pants",
+                "Jogger Pants",
+                "Cargo Pants",
+                "Jodhpuri Pants",
+                "Culottes",
+                "Harem Pants"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Palazzo Pants')) {
+
+              $scope.pType = [
+                "Palazzos"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Skirts')) {
+
+              $scope.pType = [
+                "Skirts", 
+                "Skorts"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Blazers')) {
+
+              $scope.pType = [
+                "Blazers"                
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Coats')) {
+
+              $scope.pType = [
+                "Overcoats", 
+                "Trench Coats"               
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Jackets')) {
+
+              $scope.pType = [
+                "Biker Jackets",
+                "Bulero Jackets",
+                "Cape Jackets",
+                "Crop Jackets",
+                "Hooded Jackets",
+                "Peplum Jackets",
+                "Bomber Jackets",
+                "Wrap Jackets",
+                "Windcheater Jackets"             
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Waistcoats')) {
+
+              $scope.pType = [
+                "Waistcoats"            
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Shrugs')) {
+
+              $scope.pType = [
+                "Shrugs",
+                "Shackets"            
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Sweatshirts')) {
+
+              $scope.pType = [
+                "Pullover Sweatshirts", 
+                "Front Open Sweatshirts"         
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Sweaters')) {
+
+              $scope.pType = [
+                "Cardigan",
+                "Longline Sweaters",
+                "Ponchos",
+                "Wrap Sweaters",
+                "Pullover sweaters"        
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Top & Bottom Sets')) {
+
+              $scope.pType = [
+                "Top & Pants Sets", 
+                "Top & Shorts Sets", 
+                "Top & Skirt Sets"      
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Nightwear & Loungewear')) {
+
+              $scope.pType = [
+                "Baby Dolls",
+                "Robes",
+                "Camisoles",
+                "Capris",
+                "Pyjamas",
+                "Lounge Shorts",
+                "Lounge Tops",
+                "Night Suits",
+                "Night Dresses"     
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Western Wear') && ($scope.xy[position2] == 'Activewear')) {
+
+              $scope.pType = [
+                "Track Suits",
+                "Capris",
+                "Track Pants",
+                "Track Top",
+                "Tights",
+                "Sports Bras",
+                "Treggings"   
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Handbags')) {
+
+              $scope.pType = [
+                "Handheld Bags",
+                "Hobos",
+                "Shoulder Bags",
+                "Frame Bags",
+                "Muse Bags",
+                "Baguette Bags",
+                "Bowling Bags",
+                "Bucket Bags",
+                "Oversized Bags"  
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Tote Bags')) {
+
+              $scope.pType = [
+                "Totes" 
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Sling Bags')) {
+
+              $scope.pType = [
+                "Slings", 
+                "Messenger Bags", 
+                "Satchels", 
+                "Saddle Bags"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Clutches')) {
+
+              $scope.pType = [
+                "Box Clutches",
+                "Envelope Clutches",
+                "Fold over Clutches",
+                "Frame Clutches",
+                "Over sized Clutches"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Wallets')) {
+
+              $scope.pType = [
+                "Card Holders",
+                "Purses",
+                "Bi-fold Wallets",
+                "Tri-fold Wallets",
+                "Passport Holders"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Travel Bags')) {
+
+              $scope.pType = [
+                "Backpacks",
+                "Hiking Bags",
+                "Luggage Bags",
+                "Trolley Bags",
+                "Briefcases",
+                "Duffle Bags",
+                "Weekender Bags",
+                "Organisers"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Gadget Bags')) {
+
+              $scope.pType = [
+                "Laptop Sleeves",
+                "Laptop Bags",
+                "Tablet Covers",
+                "Ipad Covers",
+                "Laptop Backpacks",
+                "Camera Bags",
+                "Mobile Pouches"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Bag Combos')) {
+
+              $scope.pType = [
+                "Tote & Sling Bag Combos",
+                "Tote & Pouch Combos",
+                "Shoulder Bag & Sling Bag Combos",
+                "Shoulder Bag & Pouch Combos",
+                "Handbag & Sling Bag Combos",
+                "Handbag & Pouch Combos",
+                "Bag Combos"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Pouches')) {
+
+              $scope.pType = [
+                "Potlis", 
+                "Wristlets"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            } else if (($scope.productCategory[position1] == 'Bags') && ($scope.xy[position2] == 'Vanity Bags')) {
+
+              $scope.pType = [
+                "Vanity Bags", 
+                "Vanity Cases"
+              ]
+              
+              var data = $scope.products[rowindex];              
+              var insert = {pType : $scope.pType};
+              var finalOutput = $.extend(data, insert);
+              $scope.products.splice(rowindex, 1)
+              $scope.products.splice(rowindex, 0,finalOutput);
+
+            }
+          }
+        /*-----------End of cascading dropdown selection --------------*/
+
+        /*Export the selected options to excel */
+        $scope.exportData = function () {
+          var check = _.where($scope.products, {selected : true});
+          $scope.finalList = check.length > 0 ? check : $scope.products;
+
+          $timeout(function() {
+            var blob = new Blob([document.getElementById('table2').innerHTML], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8"
+            });
+            saveAs(blob, "Visual_Report_" + Date.now() + ".xls");
+          }, 300)
+        };
+      })
+    </script>
+  </body>
+</html>
+
